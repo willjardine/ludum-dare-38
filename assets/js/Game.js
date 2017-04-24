@@ -43,12 +43,17 @@ var Game = (function() {
 
 			// level
 			this.grid = new HexGrid(55, 1, 1, 132, 28);
+			this.overTile = null;
 			this.totalLevels = 3;
 			this.loadLevel(1);
 
 			// events
 			this.canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
-			this.canvas.addEventListener('touchstart', this.onTouchStart.bind(this), false);
+			this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this), false);
+
+			// start game loop
+			createjs.Ticker.timingMode = createjs.Ticker.RAF;
+			createjs.Ticker.addEventListener('tick', this.update.bind(this));
 
 		};
 
@@ -153,7 +158,6 @@ var Game = (function() {
 			this.grid.updateGrid(55, this.board[0].length, this.board.length, 132, 28);
 
 			this.moves = this.getPlayerMoves(this.player);
-			this.update();
 
 		};
 		Element.prototype.levelOver = function() {
@@ -197,13 +201,10 @@ var Game = (function() {
 
 
 	//////////////////////////////////////////////////
-	// Update & Render
+	// Update Loop
 	//////////////////////////////////////////////////
 
-		Element.prototype.update = function() {
-			this.render();
-		};
-		Element.prototype.render = function() {
+		Element.prototype.update = function(event) {
 
 			var x, y;
 
@@ -216,12 +217,17 @@ var Game = (function() {
 					for (x=0; x<this.moves[y].length; ++x) {
 						if (this.moves[y][x].length > 0) {
 							var color = COLORS[ this.player ];
+							var alpha = 0.4;
+							if (this.player === 1 && this.overTile !== null && this.overTile.column === x && this.overTile.row === y) {
+								alpha = 0.6;
+							}
+
 							this.grid.drawTile(
 								this.context,
 								x,
 								y,
 								'transparent',
-								'rgba(' + color.r + ',' + color.g + ',' + color.b + ',0.4)'
+								'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + alpha + ')'
 							);
 						}
 					}
@@ -284,13 +290,9 @@ var Game = (function() {
 			// get next moves
 			this.moves = this.getPlayerMoves(this.player);
 			if (this.moves === null || this.moves.length === 0) {
-				this.update();
 				this.levelOver();
 				return;
 			}
-
-			// update game
-			this.update();
 
 			// if player is computer, wait to move
 			if (this.player !== 1) {
@@ -315,17 +317,6 @@ var Game = (function() {
 			var index = Math.floor(Math.random() * moves.length);
 			this.makeMove(moves[index].x, moves[index].y);
 
-		};
-		Element.prototype.selectTile = function(x, y) {
-			var tile = this.grid.getTile(
-				x * SCALE,
-				y * SCALE
-			);
-			if (tile !== null && this.player === 1) {
-				if (this.moves !== null && this.moves[tile.row][tile.column].length > 0) {
-					this.makeMove(tile.column, tile.row);
-				}
-			}
 		};
 		Element.prototype.getPlayerMoves = function(player) {
 			var hasMoves = false;
@@ -389,14 +380,29 @@ var Game = (function() {
 			event.preventDefault();
 			var x = event.pageX - event.currentTarget.offsetLeft,
 				y = event.pageY - event.currentTarget.offsetTop;
-			this.selectTile(x, y);
+			var tile = this.grid.getTile(
+				x * SCALE,
+				y * SCALE
+			);
+			if (tile !== null && this.player === 1) {
+				if (this.moves !== null && this.moves[tile.row][tile.column].length > 0) {
+					this.makeMove(tile.column, tile.row);
+				}
+			}
 		};
-		Element.prototype.onTouchStart = function(event) {
-			if (event.touches.length === 1) {
-				event.preventDefault();
-				var x = event.touches[0].pageX - event.currentTarget.offsetLeft,
-					y = event.touches[0].pageY - event.currentTarget.offsetTop;
-				this.selectTile(x, y);
+		Element.prototype.onMouseMove = function(event) {
+			event.preventDefault();
+			var x = event.pageX - event.currentTarget.offsetLeft,
+				y = event.pageY - event.currentTarget.offsetTop;
+
+			this.overTile = this.grid.getTile(
+				x * SCALE,
+				y * SCALE
+			);
+			if (this.player === 1 && this.overTile !== null && this.moves !== null && this.moves[this.overTile.row][this.overTile.column].length > 0) {
+				this.canvas.className = 'pointer';
+			} else {
+				this.canvas.className = '';
 			}
 		};
 

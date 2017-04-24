@@ -1,5 +1,6 @@
 body {
 	background: #000;
+	cursor: default;
 	margin: 0;
 	padding: 0;
 }
@@ -10,4 +11,8 @@ canvas {
 	height: auto;
 	margin: 0 auto;
 	width: 100%;
+}
+
+.pointer {
+	cursor: pointer;
 }
