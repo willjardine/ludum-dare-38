@@ -82,61 +82,85 @@ var HexGrid = (function() {
 			var tile;
 			var tiles = [];
 
-			// top, left
-			tile = this.getTile(
-				center.x - this.width,
-				center.y - (this.height / 2)
-			);
-			if (tile !== null) {
-				tiles.push(tile);
-			}
+			// top, center
+			tile = this.getTileAboveCenter(column, row);
+			if (tile !== null) { tiles.push(tile); }
 
-			// top, middle
-			tile = this.getTile(
-				center.x,
-				center.y - this.height
-			);
-			if (tile !== null) {
-				tiles.push(tile);
-			}
+			// top, left
+			tile = this.getTileAboveLeft(column, row);
+			if (tile !== null) { tiles.push(tile); }
 
 			// top, right
-			tile = this.getTile(
-				center.x + (this.width / 2),
-				center.y - (this.height / 2)
-			);
-			if (tile !== null) {
-				tiles.push(tile);
-			}
+			tile = this.getTileAboveRight(column, row);
+			if (tile !== null) { tiles.push(tile); }
+
+			// bottom, center
+			tile = this.getTileBelowCenter(column, row);
+			if (tile !== null) { tiles.push(tile); }
 
 			// bottom, left
-			tile = this.getTile(
-				center.x - this.width,
-				center.y + (this.height / 2)
-			);
-			if (tile !== null) {
-				tiles.push(tile);
-			}
-
-			// bottom, middle
-			tile = this.getTile(
-				center.x,
-				center.y + this.height
-			);
-			if (tile !== null) {
-				tiles.push(tile);
-			}
+			tile = this.getTileBelowLeft(column, row);
+			if (tile !== null) { tiles.push(tile); }
 
 			// bottom, right
-			tile = this.getTile(
-				center.x + (this.width / 2),
-				center.y + (this.height / 2)
-			);
-			if (tile !== null) {
-				tiles.push(tile);
-			}
+			tile = this.getTileBelowRight(column, row);
+			if (tile !== null) { tiles.push(tile); }
 
 			return tiles;
+		};
+
+
+	//////////////////////////////////////////////////
+	// Get Tiles
+	//////////////////////////////////////////////////
+
+		Element.prototype.getTileWithVector = function(column, row, vector) {
+			var center = this.getTileCenterPosition(column, row);
+			var tile = this.getTile(center.x + vector.x, center.y + vector.y);
+			if (tile !== null) { tile.vector = vector; }
+			return tile;
+		};
+		Element.prototype.getTileAboveCenter = function(column, row) {
+			var vector = {
+				x: 0,
+				y: -this.height
+			};
+			return this.getTileWithVector(column, row, vector);
+		};
+		Element.prototype.getTileAboveLeft = function(column, row) {
+			var vector = {
+				x: -this.width,
+				y: -this.height / 2
+			};
+			return this.getTileWithVector(column, row, vector);
+		};
+		Element.prototype.getTileAboveRight = function(column, row) {
+			var vector = {
+				x: this.width / 2,
+				y: -this.height / 2
+			};
+			return this.getTileWithVector(column, row, vector);
+		};
+		Element.prototype.getTileBelowCenter = function(column, row) {
+			var vector = {
+				x: 0,
+				y: this.height
+			};
+			return this.getTileWithVector(column, row, vector);
+		};
+		Element.prototype.getTileBelowLeft = function(column, row) {
+			var vector = {
+				x: -this.width,
+				y: this.height / 2
+			};
+			return this.getTileWithVector(column, row, vector);
+		};
+		Element.prototype.getTileBelowRight = function(column, row) {
+			var vector = {
+				x: this.width / 2,
+				y: this.height / 2
+			};
+			return this.getTileWithVector(column, row, vector);
 		};
 
 
@@ -147,6 +171,7 @@ var HexGrid = (function() {
 		Element.prototype.drawHex = function(context, x0, y0, strokeColor, fillColor, debugText) {
 
 			context.strokeStyle = strokeColor;
+			context.lineWidth = 2;
 			context.beginPath();
 			context.moveTo(x0 + this.width - this.side, y0);
 			context.lineTo(x0 + this.side, y0);
@@ -164,7 +189,7 @@ var HexGrid = (function() {
 			context.stroke();
 
 			if (debugText) {
-				context.font = '8px';
+				context.font = '16px sans-serif';
 				context.fillStyle = '#000';
 				context.fillText(debugText, x0 + (this.width / 2) - (this.width / 4), y0 + (this.height - 5));
 			}

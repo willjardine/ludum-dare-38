@@ -1,4 +1,4 @@
-# Ludum Dare 38
+# Ludum Dare 38: A Small World
 
 My second game jam and I'm using:
 
