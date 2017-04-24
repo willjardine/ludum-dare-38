@@ -6,7 +6,8 @@ body {
 }
 
 canvas {
-	background: transparent;
+	background: #000 url('../img/bg.jpg') center center no-repeat;
+	background-size: cover;
 	display: block;
 	height: auto;
 	margin: 0 auto;
