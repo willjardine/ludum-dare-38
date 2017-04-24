@@ -6,12 +6,16 @@ body {
 }
 
 canvas {
-	background: #000 url('../img/bg.jpg') center center no-repeat;
-	background-size: cover;
+	background: transparent;
 	display: block;
 	height: auto;
 	margin: 0 auto;
 	width: 100%;
+}
+
+.loading {
+	background: #000 url('../img/loading.jpg') center center no-repeat;
+	background-size: cover;
 }
 
 .pointer {
