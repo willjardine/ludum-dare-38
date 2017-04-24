@@ -14,6 +14,8 @@ var Game = (function() {
 		var GAME_WIDTH = 1200;
 		var GAME_HEIGHT = 1200;
 		var SCALE = 2;
+		var SFX_VOLUME = 0.5;
+		var CLICK_VOLUME = 0.1;
 
 
 	//////////////////////////////////////////////////
@@ -58,8 +60,13 @@ var Game = (function() {
 				{id:'txt-title',		src:'assets/img/txt-title.png'},
 				{id:'txt-your-turn',	src:'assets/img/txt-your-turn.png'},
 				// sounds
-				//{id:'music',		src:'assets/snd/music.ogg'},
-				//{id:'explosion',	src:'assets/snd/fx-explosion.ogg'}
+				{id:'blob-move',		src:'assets/snd/blob-move.ogg'},
+				{id:'blob-select',		src:'assets/snd/blob-select.ogg'},
+				{id:'click',			src:'assets/snd/click.ogg'},
+				{id:'show-game-over',	src:'assets/snd/show-game-over.ogg'},
+				{id:'show-overview',	src:'assets/snd/show-overview.ogg'},
+				{id:'show-results',		src:'assets/snd/show-results.ogg'},
+				{id:'show-your-turn',	src:'assets/snd/show-your-turn.ogg'}
 			]);
 
 		};
@@ -310,11 +317,16 @@ var Game = (function() {
 			*/
 
 			this.nextPlayerMove = null;
-			if (this.level === this.totalLevels) {
-				this.showText('game-over');
-			} else {
-				this.showText('results');
-			}
+			this.player = 0;
+
+			var self = this;
+			setTimeout(function(){
+				if (self.level === self.totalLevels) {
+					self.showText('game-over');
+				} else {
+					self.showText('results');
+				}
+			}, 1000);
 		};
 
 
@@ -331,27 +343,36 @@ var Game = (function() {
 
 			// draw move locations
 			if (this.moves !== null && this.player > 0 && this.txtDisplayed === '') {
-				for (y=0; y<this.moves.length; ++y) {
-					for (x=0; x<this.moves[y].length; ++x) {
-						if (this.moves[y][x].length > 0) {
-							var color = COLORS[ this.player ];
-							var alpha = 0.4;
-							if (this.nextPlayerMove !== null) {
-								alpha = 0.0;
-								if (this.nextPlayerMove.column === x && this.nextPlayerMove.row === y) {
-									alpha = 0.6;
-								}
-							} else if (this.player === 1 && this.overTile !== null && this.overTile.column === x && this.overTile.row === y) {
-								alpha = 0.6;
-							}
+				if (this.nextPlayerMove !== null) {
+					var color = COLORS[ this.player ];
+					var move = this.moves[this.nextPlayerMove.row][this.nextPlayerMove.column];
+					for (var i=0, l=move.length; i<l; ++i) {
+						this.grid.drawTile(
+							this.gridContext,
+							move[i].column,
+							move[i].row,
+							'transparent',
+							'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + 0.5 + ')'
+						);
 
-							this.grid.drawTile(
-								this.gridContext,
-								x,
-								y,
-								'transparent',
-								'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + alpha + ')'
-							);
+					}
+				} else {
+					for (y=0; y<this.moves.length; ++y) {
+						for (x=0; x<this.moves[y].length; ++x) {
+							if (this.moves[y][x].length > 0) {
+								var color = COLORS[ this.player ];
+								var alpha = 0.3;
+								if (this.player === 1 && this.overTile !== null && this.overTile.column === x && this.overTile.row === y) {
+									alpha = 0.5;
+								}
+								this.grid.drawTile(
+									this.gridContext,
+									x,
+									y,
+									'transparent',
+									'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + alpha + ')'
+								);
+							}
 						}
 					}
 				}
@@ -410,7 +431,11 @@ var Game = (function() {
 
 			var self = this;
 
+			createjs.Sound.play('blob-select', {volume:SFX_VOLUME});
+
 			setTimeout(function(){
+
+				createjs.Sound.play('blob-move', {volume:SFX_VOLUME});
 
 				// make move
 				var move = self.moves[row][column];
@@ -532,6 +557,24 @@ var Game = (function() {
 			this.txtYourTurn.visible = (txt === 'your-turn') ? true : false;
 			this.click.visible = (txt === '' || txt === 'your-turn') ? false : true;
 
+			switch (txt) {
+				case 'level-1':
+				case 'level-2':
+				case 'level-3':
+					createjs.Sound.play('show-overview', {volume:SFX_VOLUME});
+					break;
+				case 'title':
+				case 'results':
+					createjs.Sound.play('show-results', {volume:SFX_VOLUME});
+					break;
+				case 'game-over':
+					createjs.Sound.play('show-game-over', {volume:SFX_VOLUME});
+					break;
+				case 'your-turn':
+					createjs.Sound.play('show-your-turn', {volume:SFX_VOLUME});
+					break;
+			}
+
 			if (txt === 'your-turn') {
 				var self = this;
 				setTimeout(function(){
@@ -552,15 +595,19 @@ var Game = (function() {
 					case 'level-1':
 					case 'level-2':
 					case 'level-3':
+						createjs.Sound.play('click', {volume:CLICK_VOLUME});
 						this.showText('your-turn');
 						break;
 					case 'game-over':
+						createjs.Sound.play('click', {volume:CLICK_VOLUME});
 						this.showText('title');
 						break;
 					case 'results':
+						createjs.Sound.play('click', {volume:CLICK_VOLUME});
 						this.loadLevel(this.level + 1);
 						break;
 					case 'title':
+						createjs.Sound.play('click', {volume:CLICK_VOLUME});
 						this.loadLevel(1);
 						break;
 				}
@@ -575,6 +622,7 @@ var Game = (function() {
 				);
 				if (tile !== null && this.player === 1 && this.nextPlayerMove === null) {
 					if (this.moves !== null && this.moves[tile.row][tile.column].length > 0) {
+						createjs.Sound.play('click', {volume:CLICK_VOLUME});
 						this.makeMove(tile.column, tile.row);
 					}
 				}
