@@ -29,8 +29,8 @@ var Game = (function() {
 				return;
 			}
 
-			if (createjs.BrowserDetect.isIOS || createjs.BrowserDetect.isAndroid || createjs.BrowserDetect.isBlackberry) {
-				// mobile isn't supported
+			if (/*createjs.BrowserDetect.isIOS ||*/ createjs.BrowserDetect.isAndroid || createjs.BrowserDetect.isBlackberry) {
+				// Android & Blackberry mobile isn't supported
 				return;
 			}
 
